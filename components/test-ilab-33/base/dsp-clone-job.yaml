@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dsp-clone-job-test-ilab-33-gitops
+spec:  
+  template:         
+    metadata:
+      name: dsp-clone-job-test-ilab-33-gitops
+    spec:  
+      serviceAccountName: test-ilab-33-dsp-job
+      containers:
+      - name: initialize-dsp
+        image: quay.io/redhat-appstudio/appstudio-utils:5bd7d6cb0b17f9f2eab043a8ad16ba3d90551bc2@sha256:8c7fcf86af40c71aeb58e4279625c8308af5144e2f6b8e28b0ec7e795260e5f7
+        command:
+        - /bin/bash
+        - -c
+        - |
+          NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+          oc wait --for=condition=complete initialize-dsp-test-ilab-33-gitops
+          oc exec  StatefulSet/test-ilab-33-notebook -c test-ilab-33-notebook -- git clone https://github.com/fpetk/test-ilab-33
+      securityContext:
+        runAsNonRoot: true
+      restartPolicy: Never
